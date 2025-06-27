@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"time"
+	"github.com/kevvarlar/pokedexcli/pokecache"
 )
 
 type cliCommand struct {
