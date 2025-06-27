@@ -37,8 +37,7 @@ func (c Cache) Get(key string) ([]byte, bool) {
 }
 
 func (c Cache) reapLoop(interval time.Duration) {
-	for {
-		time.Sleep(interval)
+	for range time.Tick(interval) {
 		c.mu.Lock()
 		for key, val := range c.CacheEntry{
 			if time.Since(val.createdAt) > interval {

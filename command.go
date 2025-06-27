@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"time"
 )
 
 type cliCommand struct {
@@ -11,6 +12,7 @@ type cliCommand struct {
 	callback func(*Config) error
 }
 
+var cache = NewCache(5 * time.Millisecond)
 var registry = map[string]cliCommand{
 	"help" : {
 		name: "help",
