@@ -3,17 +3,20 @@ package main
 import (
 	"fmt"
 	"os"
+	"strconv"
 	"time"
+
 	"github.com/kevvarlar/pokedexcli/pokecache"
 )
 
 type cliCommand struct {
 	name string
 	description string
-	callback func(*Config) error
+	callback func(*Config, string) error
 }
 
-var cache = NewCache(5 * time.Millisecond)
+var cache = pokecache.NewCache(5 * time.Second)
+
 var registry = map[string]cliCommand{
 	"help" : {
 		name: "help",
@@ -35,6 +38,11 @@ var registry = map[string]cliCommand{
 		description: "Displays the previous 20 location areas",
 		callback: commandMapb,
 	},
+	"explore": {
+		name: "explore",
+		description: "Displays all pokemon from given location area, i.e. explore [location_area]",
+		callback: commandExplore,
+	},
 }
 
 func init() {
@@ -45,13 +53,13 @@ func init() {
     }
 }
 
-func commandExit(*Config) error {
+func commandExit(*Config, string) error {
 	fmt.Println("Closing the Pokedex... Goodbye!")
 	os.Exit(0)
 	return nil
 }
 
-func commandHelp(*Config) error {
+func commandHelp(*Config, string) error {
 	fmt.Println("Welcome to the Pokedex!")
 	fmt.Println("Usage:")
 	fmt.Println()
@@ -61,31 +69,61 @@ func commandHelp(*Config) error {
 	return nil
 }
 
-func commandMap(c *Config) error {
+func commandMap(c *Config, _ string) error {
 	c.Next()
+	v, ok := cache.Get(strconv.Itoa(Page))
+	if ok {
+		fmt.Println(string(v))
+		return nil
+	}
 	locationAreaURL := "https://pokeapi.co/api/v2/location-area/"
 	locationAreas, err := getLocationArea(locationAreaURL, Page)
 	if err != nil {
 		return err
 	}
-	for _, location := range locationAreas {
-		fmt.Println(location)
-	}
+	cache.Add(strconv.Itoa(Page), []byte(locationAreas))
+	fmt.Println(locationAreas)
 	return nil
 }
 
-func commandMapb(c *Config) error {
+func commandMapb(c *Config, _ string) error {
 	err := c.Previous()
 	if err != nil {
 		return err
 	}
+	v, ok := cache.Get(strconv.Itoa(Page))
+	if ok {
+		fmt.Println(string(v))
+		return nil
+	}
 	locationAreaURL := "https://pokeapi.co/api/v2/location-area/"
 	locationAreas, err := getLocationArea(locationAreaURL, Page)
 	if err != nil {
 		return err
 	}
-	for _, location := range locationAreas {
-		fmt.Println(location)
+	fmt.Println(locationAreas)
+	return nil
+}
+
+func commandExplore(_ *Config, locationArea string) error {
+	if len(locationArea) == 0 {
+		return fmt.Errorf("no location area given")
 	}
+	v, ok := cache.Get(locationArea)
+	if ok {
+		fmt.Printf("Exploring %s...\n", locationArea)
+		fmt.Println("Found Pokemon:")
+		fmt.Println(string(v))
+		return nil
+	}
+	locationAreaURL := "https://pokeapi.co/api/v2/location-area/"
+	pokemons, err := getAllPokemonFromLocationArea(locationAreaURL, locationArea)
+	if err != nil {
+		return err
+	}
+	fmt.Printf("Exploring %s...\n", locationArea)
+	fmt.Println("Found Pokemon:")
+	fmt.Println(pokemons)
+	cache.Add(locationArea, []byte(pokemons))
 	return nil
 }

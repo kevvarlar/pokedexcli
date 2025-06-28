@@ -18,7 +18,12 @@ func main() {
 			fmt.Println("Unknown command")
 			continue
 		}
-		err := command.callback(&urlConfig)
+		var err error
+		if len(user) > 1 {
+			err = command.callback(&urlConfig, user[1])
+		} else {
+			err = command.callback(&urlConfig, "")
+		}
 		if err != nil {
 			fmt.Printf("Error while executing command %v\n", err)
 		}
