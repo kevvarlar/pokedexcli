@@ -92,6 +92,11 @@ var registry = map[string]cliCommand{
 		description: "Inspect a pokemon's info, i.e inspect [pokemon_name]",
 		callback: commandInspect,
 	},
+	"pokedex": {
+		name: "pokedex",
+		description: "Shows a list of every pokemon you have catched",
+		callback: commandPokedex,
+	},
 }
 
 func init() {
@@ -230,6 +235,14 @@ func commandInspect(_ *Config, pokemonName string) error {
 	fmt.Println("Types:")
 	for _, t := range pokemon.Types{
 		fmt.Println("  -", t.Type.Name)
+	}
+	return nil
+}
+
+func commandPokedex(*Config, string) error {
+	fmt.Println("Your pokedex:")
+	for k, _ := range pokedex{
+		fmt.Println(" -", k)
 	}
 	return nil
 }
