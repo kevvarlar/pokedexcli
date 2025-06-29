@@ -199,3 +199,51 @@ func TestCommandCatch(t *testing.T) {
 		})
 	}
 }
+
+func TestCommandInspect(t *testing.T) {
+	cases := []struct{
+		pokemonName string
+		expected []string
+	}{
+		{
+			pokemonName: "Pikachu",
+			expected: []string{"Name: pikachu", "Height:", "Weight:", "Stats:", "-hp:", "-attack:", "-defense:", "-special-attack:", "-special-defense:", "-speed:", "Types:", "- electric"},
+		},
+		{
+			pokemonName: "Pidgey",
+			expected: []string{"Name: pidgey", "Height:", "Weight:", "Stats:", "-hp:", "-attack:", "-defense:", "-special-attack:", "-special-defense:", "-speed:", "Types:", "- normal", "- flying"},
+		},
+		{
+			pokemonName: "Lucario",
+			expected: []string{"Name: lucario", "Height:", "Weight:", "Stats:", "-hp:", "-attack:", "-defense:", "-special-attack:", "-special-defense:", "-speed:", "Types:", "- steel", "- fighting"},
+		},
+		{
+			pokemonName: "Metagross",
+			expected: []string{"Name: metagross", "Height:", "Weight:", "Stats:", "-hp:", "-attack:", "-defense:", "-special-attack:", "-special-defense:", "-speed:", "Types:", "- steel", "- psychic"},
+		},
+		{
+			pokemonName: "Charizard",
+			expected: []string{"Name: charizard", "Height:", "Weight:", "Stats:", "-hp:", "-attack:", "-defense:", "-special-attack:", "-special-defense:", "-speed:", "Types:", "- flying", "- fire"},
+		},
+	}
+
+	for i, c := range cases {
+		t.Run(fmt.Sprintf("Test case %v", i), func(t *testing.T) {
+
+			for out, err := captureOutput(commandCatch, c.pokemonName); !(strings.Contains(out, c.pokemonName + " was caught!")); out, err = captureOutput(commandCatch, c.pokemonName) {
+				if err != nil {
+					t.Errorf("error before test")
+				}
+			}
+			out, err := captureOutput(commandInspect, c.pokemonName)
+			if err != nil {
+				t.Errorf("command inspect failed to run properly: %v", err)
+			}
+			for _, e := range c.expected {
+				if !strings.Contains(out, e) {
+					t.Errorf("expected %s to contain %s", out, e)
+				}
+			}
+		})
+	}
+}

@@ -17,26 +17,39 @@ type cliCommand struct {
 }
 
 type Pokemon struct {
-    ID                     int                    `json:"id"`
-    Name                   string                 `json:"name"`
-    BaseExperience         int                    `json:"base_experience"`
-    Height                 int                    `json:"height"`
-    IsDefault              bool                   `json:"is_default"`
-    Order                  int                    `json:"order"`
-    Weight                 int                    `json:"weight"`
-    Abilities              []any       `json:"abilities"`
-    Forms                  []any     `json:"forms"`
-    GameIndices            []any     `json:"game_indices"`
-    HeldItems              []any      `json:"held_items"`
-    LocationAreaEncounters string                 `json:"location_area_encounters"`
-    Moves                  []any          `json:"moves"`
-    PastTypes              []any      `json:"past_types"`
-    PastAbilities          []any   `json:"past_abilities"`
-    Sprites                any         `json:"sprites"`
-    Cries                  any           `json:"cries"`
-    Species                any       `json:"species"`
-    Stats                  []any          `json:"stats"`
-    Types                  []any          `json:"types"`
+    ID int `json:"id"`
+    Name string `json:"name"`
+    BaseExperience int `json:"base_experience"`
+    Height int `json:"height"`
+    IsDefault bool `json:"is_default"`
+    Order int `json:"order"`
+    Weight int `json:"weight"`
+    Abilities []any `json:"abilities"`
+    Forms []any `json:"forms"`
+    GameIndices []any `json:"game_indices"`
+    HeldItems []any `json:"held_items"`
+    LocationAreaEncounters string `json:"location_area_encounters"`
+    Moves []any `json:"moves"`
+    PastTypes []any `json:"past_types"`
+    PastAbilities []any `json:"past_abilities"`
+    Sprites any `json:"sprites"`
+    Cries any `json:"cries"`
+    Species any `json:"species"`
+    Stats []struct{
+		BaseStat int `json:"base_stat"`
+		Effort int `json:"effort"`
+		Stat struct{
+			Name string `json:"name"`
+			URL string `json:"url"`
+		} `json:"stat"`
+	} `json:"stats"`
+    Types []struct{
+		Slot int `json:"slot"`
+		Type struct{
+			Name string `json:"name"`
+			URL string `json:"url"`
+		}
+	} `json:"types"`
 }
 
 var cache = pokecache.NewCache(5 * time.Second)
@@ -71,8 +84,13 @@ var registry = map[string]cliCommand{
 	},
 	"catch": {
 		name: "catch",
-		description: "Catch a pokemon, chance of catching is based on base experience",
+		description: "Catch a pokemon, chance of catching is based on base experience, i.e. catch [pokemon_name]",
 		callback: commandCatch,
+	},
+	"inspect": {
+		name: "inspect",
+		description: "Inspect a pokemon's info, i.e inspect [pokemon_name]",
+		callback: commandInspect,
 	},
 }
 
@@ -189,12 +207,29 @@ func commandCatch(_ *Config, pokemonName string) error {
 		return err
 	}
 	catchPokemon(pokemonName, pokemon)
-	
+
 	//Cache logic
 	pokemonJSON, err := json.Marshal(pokemon)
 	if err != nil {
 		return err
 	}
 	cache.Add(pokemonName, pokemonJSON)
+	return nil
+}
+
+func commandInspect(_ *Config, pokemonName string) error {
+	pokemon, ok := pokedex[pokemonName]
+	fmt.Println("here")
+	if !ok {
+		return fmt.Errorf("Pokemon not in Pokedex")
+	}
+	fmt.Println("Name:", pokemon.Name, "\nHeight:", pokemon.Height, "\nWeight:", pokemon.Weight, "\nStats:")
+	for _, stat := range pokemon.Stats{
+		fmt.Println("  -" + stat.Stat.Name + ":", stat.BaseStat)
+	}
+	fmt.Println("Types:")
+	for _, t := range pokemon.Types{
+		fmt.Println("  -", t.Type.Name)
+	}
 	return nil
 }
