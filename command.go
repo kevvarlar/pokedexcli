@@ -1,11 +1,12 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"strconv"
 	"time"
-
+	"math/rand"
 	"github.com/kevvarlar/pokedexcli/pokecache"
 )
 
@@ -15,7 +16,32 @@ type cliCommand struct {
 	callback func(*Config, string) error
 }
 
+type Pokemon struct {
+    ID                     int                    `json:"id"`
+    Name                   string                 `json:"name"`
+    BaseExperience         int                    `json:"base_experience"`
+    Height                 int                    `json:"height"`
+    IsDefault              bool                   `json:"is_default"`
+    Order                  int                    `json:"order"`
+    Weight                 int                    `json:"weight"`
+    Abilities              []any       `json:"abilities"`
+    Forms                  []any     `json:"forms"`
+    GameIndices            []any     `json:"game_indices"`
+    HeldItems              []any      `json:"held_items"`
+    LocationAreaEncounters string                 `json:"location_area_encounters"`
+    Moves                  []any          `json:"moves"`
+    PastTypes              []any      `json:"past_types"`
+    PastAbilities          []any   `json:"past_abilities"`
+    Sprites                any         `json:"sprites"`
+    Cries                  any           `json:"cries"`
+    Species                any       `json:"species"`
+    Stats                  []any          `json:"stats"`
+    Types                  []any          `json:"types"`
+}
+
 var cache = pokecache.NewCache(5 * time.Second)
+
+var pokedex = make(map[string]Pokemon)
 
 var registry = map[string]cliCommand{
 	"help" : {
@@ -42,6 +68,11 @@ var registry = map[string]cliCommand{
 		name: "explore",
 		description: "Displays all pokemon from given location area, i.e. explore [location_area]",
 		callback: commandExplore,
+	},
+	"catch": {
+		name: "catch",
+		description: "Catch a pokemon, chance of catching is based on base experience",
+		callback: commandCatch,
 	},
 }
 
@@ -125,5 +156,45 @@ func commandExplore(_ *Config, locationArea string) error {
 	fmt.Println("Found Pokemon:")
 	fmt.Println(pokemons)
 	cache.Add(locationArea, []byte(pokemons))
+	return nil
+}
+
+func catchPokemon(pokemonName string, pokemon Pokemon) {
+	fmt.Println("Throwing a Pokeball at", pokemonName + "...")
+	chance := rand.Float32() * 10
+	base := float32(pokemon.BaseExperience) / 35.0
+	if chance - base > 0 {
+		fmt.Println(pokemonName, "was caught!")
+		pokedex[pokemonName] = pokemon
+	} else {
+		fmt.Println(pokemonName, "escaped!")
+	}
+}
+
+func commandCatch(_ *Config, pokemonName string) error {
+
+	pokemonURL := "https://pokeapi.co/api/v2/pokemon/"
+	v, ok := cache.Get(pokemonName)
+	if ok {
+		pokemon := Pokemon{}
+		err := json.Unmarshal(v, &pokemon)
+		if err != nil {
+			return err
+		}
+		catchPokemon(pokemonName, pokemon)
+		return nil
+	}
+	pokemon, err := getPokemonInfo(pokemonURL, pokemonName)
+	if err != nil {
+		return err
+	}
+	catchPokemon(pokemonName, pokemon)
+	
+	//Cache logic
+	pokemonJSON, err := json.Marshal(pokemon)
+	if err != nil {
+		return err
+	}
+	cache.Add(pokemonName, pokemonJSON)
 	return nil
 }

@@ -2,3 +2,5 @@ github.com/kevvarlar/pokedexcli/internal v0.0.0-20250627010606-cf291b073eef h1:r
 github.com/kevvarlar/pokedexcli/internal v0.0.0-20250627010606-cf291b073eef/go.mod h1:kCpPAnnjHbbmvTqtGVQYVTrbm0yDVdXLRlhnogPqYQM=
 github.com/kevvarlar/pokedexcli/pokecache v0.0.0-20250627231938-50d35befe06e h1:OCbN3for0nHo035Rr/db37a06gckgl9a/QgiCR6xvvM=
 github.com/kevvarlar/pokedexcli/pokecache v0.0.0-20250627231938-50d35befe06e/go.mod h1:sWlaM+zkse7ZnSjxmJ4BOYTQyFULYeaQ6chUHWDnCbg=
+github.com/kevvarlar/pokedexcli/pokecache v0.0.0-20250628052510-b37a7527e910 h1:Mcz+GyPIkXxphIsOzIRC3i3TqxSFuXFnsJvaXhT/Jhg=
+github.com/kevvarlar/pokedexcli/pokecache v0.0.0-20250628052510-b37a7527e910/go.mod h1:sWlaM+zkse7ZnSjxmJ4BOYTQyFULYeaQ6chUHWDnCbg=

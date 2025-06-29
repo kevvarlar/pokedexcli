@@ -165,7 +165,7 @@ func TestCommandExploreCache(t *testing.T) {
 	}
 	for _, s := range expected {
 		if !strings.Contains(out, s) {
-			t.Errorf("Expected output to contain %s", s)
+			t.Errorf("expected output to contain %s", s)
 		}
 	}
 	out, err = captureOutput(commandExplore, locationArea)
@@ -176,5 +176,26 @@ func TestCommandExploreCache(t *testing.T) {
 		if !strings.Contains(out, s) {
 			t.Errorf("Expected output to contain %s", s)
 		}
+	}
+}
+
+func TestCommandCatch(t *testing.T) {
+	expectedCatched := " was caught!"
+	expectedEscaped := " escaped!"
+	cases := []string{
+		"pikachu",
+		"arceus",
+		"mewtwo",
+	}
+	for i, c := range cases {
+		t.Run(fmt.Sprintf("Test case %v", i), func(t *testing.T) {
+			out, err := captureOutput(commandCatch, c)
+			if err != nil {
+				t.Errorf("error while getting pokemon info")
+			}
+			if !(strings.Contains(out, c + expectedCatched) || strings.Contains(out, c + expectedEscaped)) {
+				t.Errorf("expected output to contain %s or %s but contained \n%s", c + expectedCatched, c + expectedEscaped, out)
+			}
+		})
 	}
 }

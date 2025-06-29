@@ -78,3 +78,22 @@ func getAllPokemonFromLocationArea(url, name string) (string, error) {
 	return pokemons, nil
 
 }
+
+func getPokemonInfo(url, name string) (Pokemon, error) {
+	fullURL := url + name
+	pokemon := Pokemon{}
+	req, err := http.Get(fullURL)
+	if err != nil {
+		return pokemon, fmt.Errorf("failed to get pokemon info: %w", err)
+	}
+	defer req.Body.Close()
+
+	data, err := io.ReadAll(req.Body)
+	if err != nil {
+		return pokemon, fmt.Errorf("error while reading request body: %w", err)
+	}
+	if err := json.Unmarshal(data, &pokemon); err != nil {
+		return pokemon, fmt.Errorf("error while unmarshalizing data: %w", err)
+	}
+	return pokemon, nil
+}
